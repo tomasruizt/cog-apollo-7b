@@ -1,2 +1,15 @@
-# cog-apollo-7b
-Cog wrapper for Apollo-LMMs/Apollo-7B-t32
+# Apollo-LMMs/Apollo-7B-t32 Cog model
+
+This is an implementation of the Huggingface space [Apollo-LMMs/Apollo-7B-t32](https://huggingface.co/Apollo-LMMs/Apollo-7B-t32) as a Cog model. [Cog packages machine learning models as standard containers.](https://github.com/replicate/cog)
+
+Run a prediction:
+
+    cog predict -i video=@astro.mp4 -i prompt="Describe this video in detail"
+
+## Input
+
+![alt text](astro.gif)
+
+## Output:
+
+    The video features an astronaut in a white spacesuit walking on the moon's surface. The background showcases a large, detailed moon against a starry sky. As the astronaut walks, they begin to run and eventually leap into the air, floating above the moon's rocky terrain. The scene transitions to the astronaut drifting away from the moon, with the lunar landscape and the moon itself visible in the background. The video concludes with the astronaut continuing to float in space, gazing at the moon.
