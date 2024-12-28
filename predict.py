@@ -13,6 +13,7 @@ from utils.mm_utils import (
     ApolloMMLoader
 )
 from utils.conversation import conv_templates, SeparatorStyle
+from utils.openai_conversation import Message
 
 MODEL_CACHE = "checkpoints"
 # Apollo-LMMs/Apollo-3B-t32 weights
@@ -26,11 +27,6 @@ def download_weights(url, dest):
     subprocess.check_call(["pget", "-xf", url, dest], close_fds=False)
     print("downloading took: ", time.time() - start)
 
-def cleanup(s):
-    last_dot_index = s.rfind('.')
-    if last_dot_index == -1:
-        return s
-    return s[:last_dot_index + 1]
 
 class Predictor(BasePredictor):
     def setup(self):
@@ -72,9 +68,9 @@ class Predictor(BasePredictor):
     def predict(
         self,
         video: Path = Input(description="Input video file"),
-        prompt: str = Input(
+        messages: str = Input(
             description="Question or prompt about the video",
-            default="Describe this video in detail"
+            default='[{"role": "user", "content": "Describe this video in detail"}]',
         ),
         temperature: float = Input(
             description="Sampling temperature",
@@ -101,11 +97,22 @@ class Predictor(BasePredictor):
         
         # Prepare conversation template
         conv = conv_templates["qwen_2"].copy()
-        conv.append_message(conv.roles[0], replace_string + "\n\n" + prompt)
-        conv.append_message(conv.roles[1], None)
+        user, assistant = conv.roles
+        messages: list[Message] = Message.parse_messages(messages)
+        found_fst_user_msg = False
+        for msg in messages:
+            role = user if msg.role == "user" else assistant
+            content = msg.content
+            if role == user and not found_fst_user_msg:
+                content = replace_string + "\n\n" + content
+                found_fst_user_msg = True
+            conv.append_message(role, content)
+        conv.append_message(assistant, None)  # Add generation prompt
         
         # Tokenize input
         prompt = conv.get_prompt()
+        print(f"Full prompt: '{prompt}'")
+
         input_ids = tokenizer_mm_token(
             prompt,
             self.tokenizer,
@@ -139,5 +146,4 @@ class Predictor(BasePredictor):
             skip_special_tokens=True
         )[0].strip()
 
-        output = cleanup(prediction)        
-        return output
+        return prediction

@@ -15,3 +15,7 @@ __pycache__
 
 # Exclude Python virtual environment
 /venv
+.venv
+
+# Exclude model weights
+checkpoints
